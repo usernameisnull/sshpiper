@@ -1,0 +1,53 @@
+FROM golang:1.25-bookworm AS builder
+# 这个Dockerfile是为了验证 plugin.pb.go和plugin_grpc.pb.go是否有被人为修改, 用的工具的版本都和这2个文件头部记录的一致.结论: 没有认为修改
+
+# 安装系统依赖
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        unzip \
+        ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# 设置版本
+ENV PROTOC_VERSION=32.1
+
+# 下载并安装 protoc
+RUN ARCH=$(dpkg --print-architecture) && \
+    case $ARCH in \
+        amd64)   PROTOC_ARCH="x86_64" ;; \
+        arm64)   PROTOC_ARCH="aarch_64" ;; \
+        *) echo "Unsupported architecture: $ARCH"; exit 1 ;; \
+    esac && \
+    curl -fsSL https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-${PROTOC_ARCH}.zip -o protoc.zip && \
+    unzip protoc.zip -d /usr/local && \
+    rm protoc.zip
+
+
+# 最终精简镜像
+FROM golang:1.25-bookworm
+
+ENV PROTOC_GEN_GO_GRPC_VERSION=v1.6.0
+ENV PROTOC_GEN_GO_VERSION=v1.36.10
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# 复制 protoc 可执行文件和头文件
+
+COPY --from=builder /usr/local/bin/protoc /usr/local/bin/protoc
+COPY --from=builder /usr/local/include/google /usr/local/include/google
+
+# 确保插件在 PATH 中（使用 GOBIN 指定全局路径）
+ENV GOBIN=/usr/local/bin
+# 安装 protoc-gen-go-grpc v1.6.0
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@${PROTOC_GEN_GO_GRPC_VERSION}
+# 安装基础 Go 插件 (生成 .pb.go)
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@${PROTOC_GEN_GO_VERSION}
+
+# 验证安装（构建时检查）
+#RUN protoc --version | grep -q "libprotoc 6.32.1" && \
+#    protoc-gen-go-grpc --version | grep -q "protoc-gen-go-grpc v1.6.0"
+
+WORKDIR /workspace

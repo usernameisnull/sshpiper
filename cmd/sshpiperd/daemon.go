@@ -273,7 +273,7 @@ func newDaemon(ctx *cli.Context) (*daemon, error) {
 	for _, signer := range signers {
 		config.AddHostKey(signer)
 	}
-
+	// me: 这里开了一个面向终端客户的tcp接口
 	lis, err := net.Listen("tcp", net.JoinHostPort(ctx.String("address"), ctx.String("port")))
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen for connection: %v", err)

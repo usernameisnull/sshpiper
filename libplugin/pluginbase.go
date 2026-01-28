@@ -91,6 +91,7 @@ func NewFromGrpc(config SshPiperPluginConfig, grpc *grpc.Server, listener net.Li
 	r, w := io.Pipe()
 
 	s := &server{
+		// me: 这里的config就是插件的配置, 作为服务端返回给客户端的信息都与这个config相关
 		config:    config,
 		grpc:      grpc,
 		listener:  listener,
@@ -105,7 +106,7 @@ func NewFromGrpc(config SshPiperPluginConfig, grpc *grpc.Server, listener net.Li
 			s.logs <- scanner.Text()
 		}
 	}()
-
+	// me: 这里各个插件就作为了服务端启动了
 	RegisterSshPiperPluginServer(s.grpc, s)
 
 	if config.GrpcRemoteSignerFactory != nil {
@@ -119,6 +120,7 @@ func NewFromGrpc(config SshPiperPluginConfig, grpc *grpc.Server, listener net.Li
 	return s, nil
 }
 
+// me: 这个struct就作为服务端的各个接口的实现
 type server struct {
 	UnimplementedSshPiperPluginServer
 
@@ -144,6 +146,7 @@ func (s *server) SetConfigLoggerCallback(cb func(w io.Writer, level string, tty 
 }
 
 func (s *server) Serve() error {
+	// me: 叹为观止啊, 这里启动grpc, 但是没有监听端口, 而是/dev/stdin和/dev/stdout
 	return s.grpc.Serve(s.listener)
 }
 

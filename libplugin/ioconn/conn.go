@@ -17,6 +17,7 @@ func (a addr) String() string {
 	return string(a)
 }
 
+// me: 实现net.Conn这个接口
 type conn struct {
 	in  io.ReadCloser
 	out io.WriteCloser

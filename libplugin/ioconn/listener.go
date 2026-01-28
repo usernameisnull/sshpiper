@@ -5,6 +5,7 @@ import (
 	"net"
 )
 
+// me: 实现type Listener interface这个接口, 就可以让grpc"监听"/dev/stdin和/dev/stdout的连接
 type singleConnListener struct {
 	conn
 	used chan int

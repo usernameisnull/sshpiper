@@ -50,6 +50,7 @@ func DialGrpc(conn *grpc.ClientConn) (*GrpcPlugin, error) {
 }
 
 func (g *GrpcPlugin) InstallPiperConfig(config *GrpcPluginConfig) error {
+	// me: 这里是怎么调用成功的?
 	cb, err := g.client.ListCallbacks(context.Background(), &libplugin.ListCallbackRequest{})
 	if err != nil {
 		return err
