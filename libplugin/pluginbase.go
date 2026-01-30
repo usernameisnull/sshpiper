@@ -150,6 +150,7 @@ func (s *server) Serve() error {
 	return s.grpc.Serve(s.listener)
 }
 
+// me: .proto生成的有SshPiperPlugin_LogsServer是因为:`rpc Logs(StartLogRequest) returns (stream Log) {}`
 func (s *server) Logs(req *StartLogRequest, stream SshPiperPlugin_LogsServer) error {
 	if s.logconfigcb != nil {
 		s.logconfigcb(s.logwriter, req.Level, req.Tty)

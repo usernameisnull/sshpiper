@@ -61,6 +61,7 @@ ssh 10.6.178.179 -p 2222
 ```
 
 ## 代码
+deepwiki的理解: https://deepwiki.com/tg123/sshpiper
 
 ### .proto
 - 只有一个.proto文件: `libplugin/plugin.proto`
@@ -76,7 +77,7 @@ ssh 10.6.178.179 -p 2222
 ### 当plugin在另一台机器上, 需要网络连接
 
 ## 插件协议
-主程序(二进制)sshpiper和plugin(二进制)之间通过grpc(不是传统的ip:port的连接而是/dev/stdin和/dev/stdout)通信   
+主程序(二进制)sshpiper和plugin(二进制)之间通过grpc(不是传统的ip:port的连接而是/dev/stdin和/dev/stdout)通信, 这种方式被称为`标准流通信`   
 - 主程序作为grpc的客户端
 ```cgo
 // func DialCmd(cmd *exec.Cmd) (*CmdPlugin, error)
@@ -85,11 +86,15 @@ conn, err := grpc.NewClient("127.0.0.1", grpc.WithTransportCredentials(insecure.
 	}))
 ```
 - plugin程序作为服务端
+- demo: https://chatgpt.com/share/697afd9d-ec00-800d-96bb-9b1b867572eb
 ```cgo
 // func NewFromGrpc(config SshPiperPluginConfig, grpc *grpc.Server, listener net.Listener) (SshPiperPlugin, error)
 RegisterSshPiperPluginServer // 这里应该就是作为服务端
 ```
 
 ## libplugin/plugin.proto
-- 生成镜像: 使用[build-proto-gen-image.sh](build-proto-gen-image.sh)
+- 生成镜像: 使用[build-proto-gen-image.sh](build-proto-gen-image.sh), 推送到了registry.cn-hangzhou.aliyuncs.com/mabing/sshpiper-ci:v0.1
 - 生成go文件: 使用proto-gen.sh
+
+### stream
+在libplugin/plugin.proto文件里的service里有些字段为stream, 作用: https://www.qianwen.com/share/chat/4fb9961e4b28448eb66a478336a7d525

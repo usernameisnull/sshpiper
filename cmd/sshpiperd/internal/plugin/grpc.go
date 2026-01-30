@@ -41,7 +41,8 @@ type GrpcPlugin struct {
 
 func DialGrpc(conn *grpc.ClientConn) (*GrpcPlugin, error) {
 	p := &GrpcPlugin{
-		grpcconn:           conn,
+		grpcconn: conn,
+		// me: 这是通过.proto自动生成的
 		client:             libplugin.NewSshPiperPluginClient(conn),
 		remotesignerClient: grpcsigner.NewSignerClient(conn),
 	}
